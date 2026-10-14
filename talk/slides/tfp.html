@@ -1,0 +1,25 @@
+<section id="tfp" data-transition="fade" style="background:#F3F0E8;color:#1A1F2B;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:24px;color:#B4501C;text-transform:uppercase;letter-spacing:2px">TFP in one slide</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:600;line-height:1.1">A protocol, a board in git, and a few small tools</h2>
+</div>
+<div data-build="items" style="display:flex;gap:32px;flex:1">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#161B26;color:#F3F0E8;padding:48px;border-radius:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#F08A4B">AGENTS.md</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:44px;font-weight:600">The protocol</h3>
+<p style="font-size:30px;color:#C9D0DC;line-height:1.4">One page of rules every agent reads first: next, claim, done, release, assume.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FBF9F4;border:1px solid #DDD8CC;padding:48px;border-radius:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#B4501C">tasks/*.md</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:44px;font-weight:600">The board</h3>
+<p style="font-size:30px;color:#4A5160;line-height:1.4">One markdown file per task, next to the code. Git is the only source of truth.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FBF9F4;border:1px solid #DDD8CC;padding:48px;border-radius:16px">
+<p style="font-family:'JetBrains Mono', 'Courier New', monospace;font-size:26px;color:#B4501C">tasks.py · agents.py</p>
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:44px;font-weight:600">The tools</h3>
+<p style="font-size:30px;color:#4A5160;line-height:1.4">A CLI for the verbs, a runner for N agents, and a local dashboard for humans.</p>
+</div>
+</div>
+<p data-build="self" style="font-size:32px;color:#4A5160;line-height:1.4;width:1500px">Python 3 and git, nothing else. No server, no orchestrator, no database. Any agent that can run a shell command can join.</p>
+<aside>Before the why, the what. TFP has three parts. The protocol is a single page of markdown, AGENTS.md, that tells an agent how to take, finish and hand back work. The board is a folder of markdown files in the same repo as the code. And there are a few small tools: tasks.py implements the verbs, agents.py launches agents in their own clones, and a local dashboard gives humans the same actions with buttons. The rest of the talk explains why it looks like this.</aside>
+</section>
