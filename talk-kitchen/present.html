@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Kitchen That Cooks While I Sleep</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&amp;display=swap">
+<style>
+html, body { margin: 0; height: 100%; background: #0d1017; overflow: hidden; cursor: default; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; }
+#stage > section { box-sizing: border-box; position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; }
+#stage > section:not(.on) { display: none !important; }
+section * { margin: 0; box-sizing: border-box; }
+section h1 { line-height: 1.1; } section h2 { line-height: 1.15; } section h3 { line-height: 1.2; }
+section p { line-height: 1.4; }
+section ul, section ol { padding-left: 1.2em; }
+section table { width: 100%; border-collapse: collapse; }
+section th, section td { padding: 0.35em 0.6em; border-bottom: 1px solid rgba(128,128,128,0.35); vertical-align: top; }
+section th { font-weight: 600; }
+x-shape { display: block; flex: none; }
+x-shape[kind="arrow-right"] { clip-path: polygon(0 30%, 60% 30%, 60% 0, 100% 50%, 60% 100%, 60% 70%, 0 70%); }
+x-shape[kind="arrow-left"] { clip-path: polygon(100% 30%, 40% 30%, 40% 0, 0 50%, 40% 100%, 40% 70%, 100% 70%); }
+x-shape[kind="ellipse"] { border-radius: 50%; }
+#count { position: fixed; right: 16px; bottom: 12px; font: 14px system-ui, sans-serif; color: #8a93a3; opacity: 0.6; }
+#notes { position: fixed; left: 0; right: 0; bottom: 0; max-height: 40vh; overflow: auto; display: none;
+  padding: 16px 24px; background: rgba(13,16,23,0.94); color: #e6e2d8; font: 18px/1.5 system-ui, sans-serif; }
+body.notes #notes { display: block; }
+/* builds: hidden until revealed; "coal" dims earlier items of the same list */
+.b-unit { transition: opacity 400ms ease, transform 400ms ease, filter 400ms ease; }
+.b-hidden { opacity: 0 !important; transform: translateY(18px) !important; }
+tr.b-hidden > td, tr.b-hidden > th { border-color: transparent; }  /* collapsed borders don't fade with the row */
+.b-past { opacity: 0.55; filter: grayscale(0.4); }
+.b-instant .b-unit { transition: none; }
+</style></head>
+<body>
+<div id="stage">
+<section id="cover" data-transition="fade" style="background:#2B211C;color:#F6EFE3;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:48px">
+<div style="position:absolute;left:1240px;top:150px;width:520px;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;color:#2B211C;padding:40px;border-radius:8px;border-top:12px solid #C8472B;box-shadow:0 16px 40px rgba(0,0,0,0.35);transform:rotate(4deg)">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#7A6658">Order #1</p>
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1">Explain what I do to people who don’t cook code</p>
+</div>
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#EE8A62">A talk about working with AI</p>
+<div style="display:flex;flex-direction:column;gap:32px;width:1040px">
+<h1 style="font-family:'Fraunces', Georgia, serif;font-size:120px;font-weight:600;line-height:1.05">The kitchen that cooks while I sleep</h1>
+<p style="font-size:44px;color:#D9CBB5;line-height:1.3">How a team of AI assistants works together, and where people fit in</p>
+</div>
+<p style="font-size:32px;color:#D9CBB5">Peter Max Gürtler</p>
+
+</section>
+<section id="hook" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:56px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Last night</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:96px;font-weight:600;line-height:1.1">While I slept, [6] AI assistants built [a working app] in [8] hours.</h2>
+<div style="display:flex;gap:32px" data-build="items coal">
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;border-top:4px solid #2B211C;padding:24px 0 0 0">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600">[42]</p>
+<p style="font-size:32px;color:#5A4A3F">jobs finished</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;border-top:4px solid #2B211C;padding:24px 0 0 0">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600">0</p>
+<p style="font-size:32px;color:#5A4A3F">times I was woken up</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;border-top:4px solid #A63D1F;padding:24px 0 0 0">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;color:#A63D1F">[5]</p>
+<p style="font-size:32px;color:#5A4A3F">notes waiting for me at breakfast</p>
+</div>
+</div>
+
+</section>
+<section id="onecook" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:72px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">The problem · 1</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">One AI assistant is like one very fast cook</h2>
+</div>
+<div style="display:flex;gap:32px" data-build="items coal">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:48px;border-radius:16px;border:2px solid #E2D4BE">
+<svg aria-label="Lightning bolt" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#A63D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Fast</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">A dish in minutes that would take a person a day.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:48px;border-radius:16px;border:2px solid #E2D4BE">
+<svg aria-label="Clock" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#A63D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Tireless</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">Works through the night, never gets bored.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:48px;border-radius:16px;border:2px solid #E2D4BE">
+<svg aria-label="Warning sign" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#A63D1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 21h20L12 3z"/><path d="M12 10v5"/><circle cx="12" cy="18" r="0.5"/></svg>
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Forgetful</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">Starts every shift with no memory of yesterday.</p>
+</div>
+</div>
+
+</section>
+<section id="chaos" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">The problem · 2</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">Ten cooks and no system: chaos</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px" data-build="items coal">
+<div style="display:flex;flex-direction:column;gap:12px;background:#EDE2CF;padding:40px;border-radius:16px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Two cooks make the same soup</h3>
+<p style="font-size:32px;color:#5A4A3F">Double the work, one pot wasted.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#EDE2CF;padding:40px;border-radius:16px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Nobody makes dessert</h3>
+<p style="font-size:32px;color:#5A4A3F">Everyone thought someone else had it.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#EDE2CF;padding:40px;border-radius:16px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">A half-raw dish reaches a guest</h3>
+<p style="font-size:32px;color:#5A4A3F">“Done” was said, not checked.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#EDE2CF;padding:40px;border-radius:16px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Nobody knows what’s ready</h3>
+<p style="font-size:32px;color:#5A4A3F">And the chef is asleep.</p>
+</div>
+</div>
+
+</section>
+<section id="insight" data-transition="fade" style="background:#C8472B;color:#FFF8EA;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:center;gap:48px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FFF8EA">The good news</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:96px;font-weight:600;line-height:1.1">Restaurants solved this long ago, with a kitchen that runs on simple rules.</h2>
+<p style="font-size:44px;line-height:1.3;width:1400px" data-build="self">Tickets on a rail everyone can see. A head chef who tastes every plate. My version of those rules for AI cooks is called <b>TFP</b>.</p>
+
+</section>
+<section id="rail" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Rule 1 · The rail</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">Every job is a ticket on one shared rail</h2>
+</div>
+<div style="display:flex;flex-direction:column;gap:0px">
+<div style="height:24px;background:#2B211C;border-radius:12px"></div>
+<div style="display:flex;gap:40px;padding:0 48px" data-build="items coal">
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFF8EA;padding:32px;border-radius:0 0 8px 8px;box-shadow:0 10px 24px rgba(43,33,28,0.18);transform:rotate(-2deg)">
+<p style="font-size:24px;font-weight:700;color:#7A6658">#1</p>
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1">Tomato sauce</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFF8EA;padding:32px;border-radius:0 0 8px 8px;box-shadow:0 10px 24px rgba(43,33,28,0.18);transform:rotate(1deg)">
+<p style="font-size:24px;font-weight:700;color:#7A6658">#2</p>
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1">Fresh bread</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFF8EA;padding:32px;border-radius:0 0 8px 8px;box-shadow:0 10px 24px rgba(43,33,28,0.18);transform:rotate(-1deg)">
+<p style="font-size:24px;font-weight:700;color:#7A6658">#3</p>
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1">Pasta for table 4</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#FFF8EA;padding:32px;border-radius:0 0 8px 8px;box-shadow:0 10px 24px rgba(43,33,28,0.18);transform:rotate(2deg)">
+<p style="font-size:24px;font-weight:700;color:#7A6658">#4</p>
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1">Tiramisu</p>
+</div>
+</div>
+</div>
+<p style="font-size:44px;color:#5A4A3F;line-height:1.3" data-build="self">Everyone looks at the same rail. If it isn’t on a ticket, it doesn’t exist.</p>
+
+</section>
+<section id="order" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Rule 2 · The order</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">Some dishes have to wait for others</h2>
+</div>
+<div style="display:flex;align-items:center;gap:32px" data-build="items coal">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFF8EA;padding:32px;border-radius:8px;border-top:12px solid #C8472B;box-shadow:0 10px 24px rgba(43,33,28,0.18)">
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1">Tomato sauce</p>
+<p style="font-size:24px;font-weight:700;color:#A63D1F;text-transform:uppercase;letter-spacing:2px">Ready now</p>
+</div>
+<x-shape kind="arrow-right" style="background:#2B211C;width:112px;height:56px"></x-shape>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#EDE2CF;padding:32px;border-radius:8px;border-top:12px solid #9C8B7B">
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1">Pasta for table 4</p>
+<p style="font-size:24px;font-weight:700;color:#5A4A3F;text-transform:uppercase;letter-spacing:2px">Waits for: sauce</p>
+</div>
+<x-shape kind="arrow-right" style="background:#2B211C;width:112px;height:56px"></x-shape>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#EDE2CF;padding:32px;border-radius:8px;border-top:12px solid #9C8B7B">
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1">Serve table 4</p>
+<p style="font-size:24px;font-weight:700;color:#5A4A3F;text-transform:uppercase;letter-spacing:2px">Waits for: pasta</p>
+</div>
+</div>
+<p style="font-size:44px;color:#5A4A3F;line-height:1.3" data-build="self">Cooks only take tickets that are ready, and the one that unblocks the most dishes comes first.</p>
+
+</section>
+<section id="claim" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Rule 3 · Calling it</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">Take a ticket and write your name on it</h2>
+</div>
+<div style="display:flex;align-items:center;gap:96px">
+<div style="width:560px;display:flex;flex-direction:column;gap:24px;background:#FFF8EA;padding:48px;border-radius:8px;border-top:12px solid #C8472B;box-shadow:0 16px 32px rgba(43,33,28,0.2);transform:rotate(-3deg)">
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:64px;line-height:1.1">Tomato sauce</p>
+<hr style="border-top:2px dashed #9C8B7B;width:100%">
+<p style="font-size:24px;font-weight:700;color:#7A6658;text-transform:uppercase;letter-spacing:2px">Taken by</p>
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:72px;line-height:1;color:#A63D1F">Cook 3</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:48px" data-build="items coal">
+<div style="display:flex;flex-direction:column;gap:12px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Only one name fits</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">So no two cooks ever make the same dish.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Two reach at once?</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">One wins. The other shrugs and takes the next ticket. No arguing.</p>
+</div>
+</div>
+</div>
+
+</section>
+<section id="vanish" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Rule 4 · Nobody gets lost</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">If a cook vanishes, the ticket goes back on the rail</h2>
+</div>
+<div style="display:flex;align-items:center;gap:24px" data-build="items coal">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:40px;border-radius:16px;border:2px solid #E2D4BE">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;color:#A63D1F">1</p>
+<p style="font-size:32px;line-height:1.4">Cook 2 takes the risotto, and calls out “still on it” every few minutes.</p>
+</div>
+<x-shape kind="arrow-right" style="background:#2B211C;width:80px;height:40px"></x-shape>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:40px;border-radius:16px;border:2px solid #E2D4BE">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;color:#A63D1F">2</p>
+<p style="font-size:32px;line-height:1.4">Cook 2 goes quiet: crashed, or ran out of time.</p>
+</div>
+<x-shape kind="arrow-right" style="background:#2B211C;width:80px;height:40px"></x-shape>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:40px;border-radius:16px;border:2px solid #E2D4BE">
+<p style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;color:#A63D1F">3</p>
+<p style="font-size:32px;line-height:1.4">The ticket returns. The next cook finds the half-made risotto and carries on.</p>
+</div>
+</div>
+
+</section>
+<section id="pass" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Rule 5 · The pass</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">Nothing leaves the kitchen without a taste test</h2>
+</div>
+<div style="display:flex;align-items:stretch;gap:0px" data-build="items coal">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#EDE2CF;padding:48px;border-radius:16px 0 0 16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#5A4A3F">The kitchen</p>
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Work in progress</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">Half-done dishes stay back here. Guests never see them.</p>
+</div>
+<div style="width:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#2B211C;color:#F6EFE3;padding:40px">
+<svg aria-label="Check mark" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#EE8A62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.5 3.5L17 9"/></svg>
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600;text-align:center">Taste test</h3>
+<p style="font-size:24px;color:#D9CBB5;text-align:center">Pass, or back to the stove</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:48px;border-radius:0 16px 16px 0;border:2px solid #E2D4BE">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#5A4A3F">The dining room</p>
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Finished work only</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">Only dishes that passed the test are ever served.</p>
+</div>
+</div>
+<p style="font-size:44px;color:#5A4A3F;line-height:1.3" data-build="self">A cook can’t just say “done”. The test decides.</p>
+
+</section>
+<section id="chefnotes" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Rule 6 · The chef is asleep</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">Cooks don’t wait for answers. They decide and leave a note.</h2>
+</div>
+<div style="display:flex;align-items:start;gap:48px" data-build="items coal">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#F2C14E;padding:40px;box-shadow:0 12px 24px rgba(43,33,28,0.2);transform:rotate(-2deg)">
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:52px;line-height:1.1">Out of basil, used parsley.</p>
+<p style="font-size:24px;font-weight:700;color:#4A3A1C">Cook 4</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#F2C14E;padding:40px;box-shadow:0 12px 24px rgba(43,33,28,0.2);transform:rotate(2deg)">
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:52px;line-height:1.1">Menu didn’t say spicy or mild. Went mild.</p>
+<p style="font-size:24px;font-weight:700;color:#4A3A1C">Cook 1</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:40px;border:4px solid #A63D1F;box-shadow:0 12px 24px rgba(43,33,28,0.2);transform:rotate(-1deg)">
+<p style="font-size:24px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#A63D1F">Needs a person</p>
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:52px;line-height:1.1">Guest allergic to nuts? I won’t guess.</p>
+<p style="font-size:24px;font-weight:700;color:#5A4A3F">Cook 6</p>
+</div>
+</div>
+<p style="font-size:44px;color:#5A4A3F;line-height:1.3" data-build="self">In the morning the chef reads the notes: keep it, or change it.</p>
+
+</section>
+<section id="people" data-transition="fade" style="background:#2B211C;color:#F6EFE3;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#EE8A62">Where people fit</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">People run the kitchen. The AI does the cooking.</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px" data-build="items coal">
+<div style="display:flex;flex-direction:column;gap:12px;background:#3A2E27;padding:40px;border-radius:16px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600;color:#EE8A62">Write the menu</h3>
+<p style="font-size:32px;color:#D9CBB5">Decide what gets made, and what “good” means.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#3A2E27;padding:40px;border-radius:16px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600;color:#EE8A62">Read the notes</h3>
+<p style="font-size:32px;color:#D9CBB5">Confirm or overrule the choices cooks made alone.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#3A2E27;padding:40px;border-radius:16px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600;color:#EE8A62">Answer the call</h3>
+<p style="font-size:32px;color:#D9CBB5">Step in when a cook is truly stuck.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#3A2E27;padding:40px;border-radius:16px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600;color:#EE8A62">Shout “Stop!”</h3>
+<p style="font-size:32px;color:#D9CBB5">Pause new tickets while the menu changes.</p>
+</div>
+</div>
+
+</section>
+<section id="board" data-transition="fade" style="background:#EDE2CF;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">See it for real</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">The rail on the wall</h2>
+</div>
+<div style="display:flex;align-items:center;gap:64px">
+<img src="img/dashboard-board.webp" alt="The TFP dashboard: a headline “2 ready, 4 in progress, 1 needs a human”, and ticket columns Needs a human, Ready, In progress, Waiting and Done" style="width:1000px;height:625px;object-fit:contain;background:#2B211C;border-radius:16px">
+<div style="flex:1;display:flex;flex-direction:column;gap:40px" data-build="items coal">
+<div style="display:flex;flex-direction:column;gap:8px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">One glance</h3>
+<p style="font-size:32px;color:#5A4A3F">What’s ready, who’s cooking what, what’s served.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Notes to read</h3>
+<p style="font-size:32px;color:#5A4A3F">Every choice the cooks made alone.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Buttons, not code</h3>
+<p style="font-size:32px;color:#5A4A3F">Pause, answer, add a ticket.</p>
+</div>
+</div>
+</div>
+
+</section>
+<section id="glossary" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">For the curious</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">What the kitchen words really mean</h2>
+</div>
+<table style="font-size:32px;color:#2B211C" data-build="items coal">
+<tr><th style="width:30%;color:#A63D1F">In the kitchen</th><th style="width:70%;color:#A63D1F">In my work</th></tr>
+<tr><td>Cook</td><td>An AI assistant that can work on its own (an “AI agent”)</td></tr>
+<tr><td>Ticket on the rail</td><td>One small job, written in a shared folder</td></tr>
+<tr><td>The logbook</td><td>A record of every change, so nothing is lost (Git)</td></tr>
+<tr><td>Name on the ticket</td><td>“I’m on it”: only one assistant can take a job</td></tr>
+<tr><td>Taste test at the pass</td><td>An automatic check before work counts as done</td></tr>
+<tr><td>Note for the chef</td><td>A decision the assistant made alone, for a person to review</td></tr>
+</table>
+
+</section>
+<section id="limits" data-transition="fade" style="background:#F6EFE3;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Honest limits</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">What the kitchen can’t do</h2>
+</div>
+<div style="display:flex;gap:32px" data-build="items coal">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:48px;border-radius:16px;border-top:8px solid #A63D1F">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Cooks still make mistakes</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">That’s why every plate is tasted, and why I read the notes.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:48px;border-radius:16px;border-top:8px solid #A63D1F">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">Tasting isn’t judging</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">The test says the dish is safe to serve, not that the guest will love it.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#FFF8EA;padding:48px;border-radius:16px;border-top:8px solid #A63D1F">
+<h3 style="font-family:'Fraunces', Georgia, serif;font-size:44px;font-weight:600">A vague menu, vague food</h3>
+<p style="font-size:32px;color:#5A4A3F;line-height:1.4">Writing good tickets is now the hard part, and it’s human work.</p>
+</div>
+</div>
+
+</section>
+<section id="beyond" data-transition="fade" style="background:#EDE2CF;color:#2B211C;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#A63D1F">Why this matters to you</p>
+<h2 style="font-family:'Fraunces', Georgia, serif;font-size:72px;font-weight:600;line-height:1.1">It works for any job you can cut into tickets and check</h2>
+</div>
+<div style="display:flex;flex-direction:column;gap:0px" data-build="items coal">
+<div style="display:flex;align-items:center;gap:40px;padding:32px 0;border-top:2px solid #C9B89F">
+<p style="width:420px;font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1;color:#A63D1F">Cut it up</p>
+<p style="flex:1;font-size:32px;color:#2B211C">Can the work be split into small, clear jobs?</p>
+</div>
+<div style="display:flex;align-items:center;gap:40px;padding:32px 0;border-top:2px solid #C9B89F">
+<p style="width:420px;font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1;color:#A63D1F">Taste it</p>
+<p style="flex:1;font-size:32px;color:#2B211C">Is there a way to check each job is really done?</p>
+</div>
+<div style="display:flex;align-items:center;gap:40px;padding:32px 0;border-top:2px solid #C9B89F;border-bottom:2px solid #C9B89F">
+<p style="width:420px;font-family:'Caveat', 'Brush Script MT', cursive;font-size:56px;line-height:1.1;color:#A63D1F">Read the notes</p>
+<p style="flex:1;font-size:32px;color:#2B211C">Is a person ready to steer, review and decide?</p>
+</div>
+</div>
+
+</section>
+<section id="close" data-transition="fade" style="background:#2B211C;color:#F6EFE3;font-family:'Nunito Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between;gap:48px">
+<p style="font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#EE8A62">If you remember one thing</p>
+<h1 style="font-family:'Fraunces', Georgia, serif;font-size:120px;font-weight:600;line-height:1.05;width:1500px">Fast cooks are now cheap. A good kitchen makes them useful.</h1>
+<div style="display:flex;justify-content:space-between;align-items:end;gap:48px">
+<p style="font-family:'Caveat', 'Brush Script MT', cursive;font-size:72px;color:#F2C14E">Thank you! Questions?</p>
+<p style="font-size:32px;color:#D9CBB5;text-align:right">Peter Max Gürtler</p>
+</div>
+
+</section>
+
+</div>
+<div id="count"></div>
+<div id="notes"></div>
+<script>
+const NOTES = ["Welcome. I\u2019m going to tell you about my work, and I promise: no code, no jargon. Instead, we\u2019re going to spend the next half hour in a restaurant kitchen. By the end you\u2019ll understand how I get a team of AI assistants to build things together, overnight, without me standing next to them, and why the most important part of it has nothing to do with technology.", "Start with a real story from your own work. Fill in the bracketed numbers from an actual overnight run: how many assistants, what they built, how long it took, how many jobs got done, how many notes they left. Something like: \u201cLast [Tuesday] I went to bed at eleven. When I woke up, [six] AI assistants had built [a working booking app]. Nobody told them what to do next, nobody had to referee. They left me [five] notes about decisions they made on their own.\u201d Pause. \u201cThis talk is about how that\u2019s possible, and why it isn\u2019t magic.\u201d", "You\u2019ve probably heard of ChatGPT or similar tools. The newer ones don\u2019t just chat: they can do work on their own. We call them AI agents, but let\u2019s just call them cooks. One cook on its own is impressive: very fast, never tired. But notice the third card. Every time a cook starts, it remembers nothing from before. Everything it needs to know has to be written down somewhere it can read. Keep that in mind, it matters later. And with one cook and one dish, that\u2019s all easy. The trouble starts when you want a whole dinner.", "Now hire ten of these cooks and tell them: make a five-course dinner. Without a system you get exactly what you\u2019d get with ten people: two make the same soup, nobody makes dessert, someone serves something half-raw because they said \u201cdone\u201d and nobody checked, and nobody can tell you what\u2019s actually ready. Ask the audience: who has worked in a team where this happened? Hands usually go up. That\u2019s the point: this isn\u2019t an AI problem, it\u2019s a teamwork problem. And with AI it\u2019s worse, because the cooks are so fast that the chaos happens in minutes.", "Here\u2019s the good news: busy restaurant kitchens solved this problem more than a hundred years ago. A good kitchen doesn\u2019t depend on brilliant cooks; it depends on a few simple rules everyone follows. Every order is a ticket. All tickets hang on one rail everyone can see. And a head chef tastes every plate before it goes out. What I built is exactly that, for AI cooks. It\u2019s called TFP, the Task Flow Protocol. \u201cProtocol\u201d just means: rules everyone agreed on. In the next few minutes I\u2019ll show you the six rules. Each one is something you already know from a kitchen.", "Rule one. Every piece of work is written on its own ticket, and all tickets hang on one rail that every cook can see. Remember that our cooks are forgetful: the rail is their memory. Each ticket says exactly what \u201cdone\u201d means, like a recipe. For the curious: in real life the rail is a shared folder of small text files, one per job. It keeps a complete logbook of every change, who made it and when, so nothing is ever lost. Programmers call that tool Git, but you don\u2019t need to remember the name.", "Rule two. You can\u2019t plate the pasta before the sauce exists. So each ticket says what it waits for. When a cook is free, they don\u2019t ask anyone what to do. They look at the rail, see which tickets are ready right now, and take the one that holds up the most other dishes. Here that\u2019s the sauce: two other tickets are waiting for it. Nobody has to hand out work. The cooks pull it themselves, which is also how many factories have worked since the 1950s.", "Rule three. A cook who takes a ticket writes their name on it, and only one name fits. That alone prevents the \u201ctwo cooks, same soup\u201d problem. What if two cooks grab the same ticket at the exact same moment? The rail decides: exactly one of them wins, and the other gets a clear \u201csorry, taken\u201d and simply goes back to the rail for the next one. There\u2019s no boss in the middle handing out work and no meeting. The rail itself is the referee.", "Rule four. Cooks drop out. An AI assistant can crash, lose its connection or simply run out of its time budget. In a normal kitchen, that ticket would hang there forever with a name on it. In ours, every cook calls out \u201cstill on it\u201d every few minutes. If a cook goes silent for too long, their ticket automatically goes back on the rail. And here\u2019s the important part: the half-finished work isn\u2019t thrown away. It stays on the counter, labeled, so the next cook picks up exactly where the last one stopped. Nobody has to notice, nobody has to clean up.", "Rule five, and maybe the most important one. In a good restaurant there\u2019s a counter between kitchen and dining room called the pass, where the head chef tastes every plate. Ours works the same way. When a cook says \u201cI\u2019m done\u201d, that\u2019s not enough: an automatic taste test runs first. Only if it passes is the dish served, meaning the finished work is added to the real product. If it fails, the cook gets it back and has to fix it. So the dining room, the version people actually use, only ever contains finished, checked work. Half-done things never leak out.", "Rule six is about something unusual: in our kitchen the chef is often asleep, literally, because the cooks work at night. A normal assistant would stop and wait for an answer: \u201cSpicy or mild?\u201d By morning nothing would be done. Our cooks are told: don\u2019t wait. Make the most sensible choice and leave a note explaining it. The first two notes are exactly that. In the morning I read the notes and either say \u201cfine\u201d or \u201cchange that\u201d, and a cook redoes it. Only when a decision really can\u2019t be guessed, like the allergy on the third note, does a cook park the ticket and ask for a human. Nobody else will touch that ticket until a person answers.", "So where do people fit in? Everywhere that matters. People write the menu: what should be built and what counts as good. People read the notes and keep or overrule decisions. People answer when a cook is genuinely stuck. And at any moment a person can shout \u201cStop!\u201d: no cook takes a new ticket while we rethink the plan, and anything no longer wanted can be crossed off. My own job has changed: I spend much less time cooking and much more time writing good tickets and checking results. That\u2019s the real shift: from doing the work to directing it and judging it.", "This is the real thing: the dashboard I look at every morning. It\u2019s the rail on the wall. The big headline reads like a kitchen call-out: two ready, four in progress, one needs a human. Below are the columns: needs a human, ready, in progress, waiting for another dish, and done. If you can, switch to a live demo here (two to three minutes at most): point at one ready ticket, one ticket a cook is working on, one that passed the taste test, and one note waiting for me. Then press a button, for example answer a parked question, and show that the ticket goes back on the rail. If a live demo is risky, stay on the screenshot and walk through it the same way. The point to make: I don\u2019t need to type commands to run the kitchen. Everything a person does is a button.", "Optional slide. Use it if the audience is curious, or keep it as a backup for questions. It maps every kitchen word to what it really is. The only technical name worth mentioning is Git, the logbook: a tool programmers use to keep the full history of every change. Everything else is plain language.", "I want to be honest about the limits, because that\u2019s where trust comes from. First: the cooks make mistakes, sometimes confident ones. The whole system is built around that, with taste tests and notes, but it doesn\u2019t make mistakes disappear. Second: the automatic test proves a dish is safe to serve, not that it\u2019s what the guest wanted. That judgment stays with people. Third, and the most surprising lesson for me: the result is only as good as the tickets. A vague menu gives vague food. Writing clear tickets has become the most important part of my job. [Add one real mistake from your own experience here, and how it was caught.]", "Today I use this to build software. But nothing about the rules is specific to software. They are the rules of any well-run kitchen, workshop or office. Ask three questions about your own work: can it be split into small, clear jobs? Is there a way to check each job is really done? And is someone ready to steer and review? Where the answer is yes three times, a kitchen like this could help. [Add one example from your audience\u2019s world, e.g. preparing a set of reports, translating a manual, or reviewing documents, and ask the room for theirs.]", "Close with the one sentence you want people to repeat at dinner tonight: fast cooks are now cheap; a good kitchen is what makes them useful. The AI is the easy part, everyone has access to it. The rules around it, and the people who write the menu and taste the food, are what turn it into something you can trust. Thank you. Likely questions to prepare for: \u201cWill this replace jobs?\u201d (my answer: it changed mine from cooking to running the kitchen), \u201cWhat if the AI gets it wrong?\u201d (taste tests, notes, people decide), \u201cWho is responsible?\u201d (people, always), \u201cWhat does it cost?\u201d [fill in your real numbers]."];
+const stage = document.getElementById("stage");
+const slides = [...stage.querySelectorAll(":scope > section")];
+let i = 0, step = 0;
+
+// Build steps per slide, from data-build markers:
+//   data-build="self"        the element appears as one step
+//   data-build="items"       its children appear one by one (table: rows, minus a header row)
+//   data-build="items coal"  same, and earlier children are dimmed once a later one appears
+//   data-build-with="next"   on a child: appears together with the next child (arrows next to boxes)
+// x-shape children always appear together with the next child. Steps run in document order,
+// so a list inside a box comes right after the box.
+const builds = slides.map(slide => {
+  const units = [];
+  slide.querySelectorAll("[data-build]").forEach(el => {
+    const mode = el.dataset.build.split(/\s+/);
+    if (mode.includes("self")) { units.push({ els: [el], list: null }); return; }
+    let kids = el.tagName === "TABLE" ? [...el.querySelectorAll("tr")] : [...el.children];
+    if (el.tagName === "TABLE" && kids[0] && kids[0].querySelector("th")) kids = kids.slice(1);
+    const list = { coal: mode.includes("coal") };
+    let pending = [];
+    for (const k of kids) {
+      pending.push(k);
+      if (k.tagName === "X-SHAPE" || k.dataset.buildWith === "next") continue;
+      units.push({ els: pending, list }); pending = [];
+    }
+    if (pending.length) units.push({ els: pending, list });
+  });
+  units.sort((a, b) => a.els[0].compareDocumentPosition(b.els[0]) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
+  units.forEach(u => u.els.forEach(e => e.classList.add("b-unit")));
+  return units;
+});
+
+function render() {
+  const units = builds[i];
+  const latest = new Map();  // list -> index of its most recently revealed unit
+  units.forEach((u, k) => { if (k < step && u.list) latest.set(u.list, k); });
+  units.forEach((u, k) => u.els.forEach(e => {
+    e.classList.toggle("b-hidden", k >= step);
+    e.classList.toggle("b-past", k < step && u.list && u.list.coal && latest.get(u.list) !== k);
+  }));
+}
+
+function next() {
+  if (step < builds[i].length) { step++; render(); }
+  else if (i < slides.length - 1) show(i + 1, 0);
+}
+function prev() {
+  if (step > 0) { step--; render(); }
+  else if (i > 0) show(i - 1, Infinity);
+}
+
+function fit() {
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+function show(n, s = 0) {
+  i = Math.max(0, Math.min(slides.length - 1, n));
+  step = Math.min(s, builds[i].length);
+  slides.forEach((el, k) => el.classList.toggle("on", k === i));
+  // jumping to a slide (back, Home/End, reload) shows its state at once, without animation
+  stage.classList.add("b-instant"); render(); void stage.offsetWidth; stage.classList.remove("b-instant");
+  document.getElementById("count").textContent = `${i + 1} / ${slides.length}`;
+  document.getElementById("notes").textContent = NOTES[i] || "(no notes)";
+  history.replaceState(null, "", "#" + (i + 1));
+}
+addEventListener("keydown", e => {
+  if (e.shiftKey && e.key === "ArrowRight") show(i + 1);  // skip the rest of this slide's builds
+  else if (e.shiftKey && e.key === "ArrowLeft") show(i - 1);
+  else if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) next();
+  else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) prev();
+  else if (e.key === "Home") show(0);
+  else if (e.key === "End") show(slides.length - 1, Infinity);
+  else if (e.key === "a" || e.key === "A") show(i, Infinity);  // reveal all of this slide
+  else if (e.key === "f" || e.key === "F") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  else if (e.key === "n" || e.key === "N") document.body.classList.toggle("notes");
+  else return;
+  e.preventDefault();
+});
+addEventListener("click", e => { if (!e.target.closest("#notes")) next(); });
+addEventListener("contextmenu", e => { e.preventDefault(); prev(); });
+addEventListener("resize", fit);
+fit();
+const [hs, hb] = location.hash.slice(1).split(".");  // #9 = slide 9; #9.3 = slide 9 after 3 builds
+show((parseInt(hs) || 1) - 1, parseInt(hb) || 0);
+</script>
+</body></html>
