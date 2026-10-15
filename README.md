@@ -122,11 +122,16 @@ Each agent gets `--task-budget` sessions per task (default 2, up to 30 min each)
 is a review instead of more coding. The agent must choose one of:
 - `tasks.py extend`: nearly done, one more session (once).
 - `tasks.py split --from <file>`: create 2-6 subtasks; the original then only integrates and verifies.
-- `tasks.py hold`: stuck; needs a human.
+- `tasks.py release --note`: hand off; the task is still resumable (e.g. only finalization is left) but
+  splitting it would be artificial, so another agent continues it from `wip/<task>`.
+- `tasks.py hold`: stuck; a person is really needed (unclear requirement, missing dependency, a decision).
 
-A review that decides nothing puts the task on hold. A task also goes on hold automatically after being
-released 3 times, after 3 failed `redo` attempts, or when a subtask would be split again. Held tasks
-show at the top of the dashboard under **Needs a human**, with the reason. Fix the cause (clarify
+Being over budget alone never needs a human: a review that decides nothing releases the task with a
+handoff note. The agent that gave it up then leaves it to other agents for `--avoid` seconds (default
+300; it takes it back after that if nobody did, so a single agent never deadlocks). A Claude usage limit
+is different: it releases with `--handoff`, which is not counted. A task goes on hold automatically after
+being released 3 times (counted releases, so a task nobody can finish stops bouncing), after 3 failed
+`redo` attempts, or when a subtask would be split again. Held tasks show at the top of the dashboard under **Needs a human**, with the reason. Fix the cause (clarify
 SPEC.md, edit the task, add a missing task), then run `python tasks.py unhold <id>`. Agents pick it up
 again within a minute, with a fresh budget.
 

@@ -22,8 +22,11 @@ releases its task (work saved to wip/<task>, a note says why) so agents on other
 then waits until the limit resets (the time Claude reports, else --limit-wait) and carries on.
 
 Task budget: after --task-budget sessions (default 2, ~30 min each) on one task, the next session is a
-review: the agent must extend it once (nearly done), split it into subtasks, or put it on hold for a
-human. A review that decides nothing puts the task on hold.
+review: the agent must extend it once (nearly done), split it into subtasks, hand it to another agent
+(release with a handoff note) or, only if a person is really needed, put it on hold. A review that decides
+nothing releases the task too: being over budget alone never needs a human. Releases are counted, so a
+task nobody can finish still ends up on hold after a few (tasks.py MAX_RELEASES). The runner then
+prefers other ready tasks for a while (--avoid, default 300 s) instead of reclaiming the one it gave up.
 
 Live status: the runner reads the agent's output as it streams, turns each step into a one-line
 "doing" (e.g. `$ make check`, `editing backend/auth.py`), and force-pushes it every ~10-60 s as a
@@ -83,9 +86,13 @@ a task should take, so do NOT continue implementing in this session. Instead:
 3. Choose exactly one, run it, then stop:
 {extend}   - Too big: write the remaining work as 2-6 subtasks into a file (format: AGENTS.md "Too big or
      stuck"), then `python tasks.py split {id} --from <file> --note "<what is done so far>"`
-   - Stuck (unclear requirement, missing dependency, a decision is needed, the check fails for reasons
-     outside this task): `python tasks.py hold {id} "<what a human must decide or do>"`
-If you choose nothing, the task is put on hold for a human."""
+   - Hand off (the task is still valid and resumable, e.g. only finalization is left, but splitting it
+     would be artificial): `python tasks.py release {id} --note "<what is done, exactly what is left>"`;
+     another agent continues from your commits
+   - Stuck, ONLY if a person is really needed (unclear requirement, missing dependency, a decision is
+     needed, the check fails for reasons outside this task): `python tasks.py hold {id} "<what a human
+     must decide or do>"`. Taking longer than planned is not a reason to hold.
+If you choose nothing, the task is released for another agent with a generic note."""
 REVIEW_EXTEND = ('   - Nearly done (one more session will finish it): '
                  '`python tasks.py extend {id} --note "<what is left>"`\n')
 JOB_NEW = "Run `python tasks.py claim` (no id = best ready task). If it reports LOST RACE, run it again."
@@ -290,7 +297,7 @@ def cmd_start(a):
         log = open(base / "logs" / f"{name}.log", "a", encoding="utf-8")
         argv = [sys.executable, str(Path(__file__).resolve()), "run", name, str(clone), "--owner", owner,
                 "--cmd", cmd, "--timeout", str(a.timeout), "--lease", str(a.lease), "--limit-wait", str(a.limit_wait),
-                "--task-budget", str(a.task_budget)]
+                "--task-budget", str(a.task_budget), "--avoid", str(a.avoid)]
         io = dict(stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
         try:  # Windows: leave the terminal's job object too, if allowed, so closing the terminal is safe
             proc = subprocess.Popen(argv, **io, **detached(breakaway=True))
@@ -511,19 +518,21 @@ def cmd_run(a):
         idle(until - now, state="limited" if limited else "paused",
              doing=f"{what}, retrying at {hhmm}: {one_line(reason, 80)}")
 
-    def force_hold(tid, reason):
-        """A review that decided nothing: commit what is there and put the task on hold for a human."""
+    def force_release(tid, note):
+        """A review that decided nothing: commit what is there and give the task to another agent. Over
+        budget is not a reason for a human; a counted release still holds it after MAX_RELEASES."""
         if tasks.merge_state():
             sh("git", tasks.merge_state(), "--abort", cwd=clone)
         if sh("git", "status", "--porcelain", cwd=clone).stdout.strip():
             sh("git", "add", "-A", cwd=clone)
-            sh("git", "commit", "-qm", f"wip: {tid} (before hold)", cwd=clone)
-        p = sh(sys.executable, "tasks.py", "hold", tid, reason, cwd=clone)
-        log(f"put {tid} on hold: " + ((p.stdout + p.stderr).strip().splitlines() or ["?"])[-1])
+            sh("git", "commit", "-qm", f"wip: {tid} (before release)", cwd=clone)
+        p = sh(sys.executable, "tasks.py", "release", tid, "--note", note, cwd=clone)
+        log(f"released {tid} for another agent: " + ((p.stdout + p.stderr).strip().splitlines() or ["?"])[-1])
 
     child = [None]
     fails = 0  # failed sessions in a row
     spent = {}  # task id -> [sessions, seconds] since this runner claimed it (budget: --task-budget sessions)
+    avoid = {}  # task id -> until (epoch): gave it up over budget, so let another agent continue it first
 
     def shutdown(*_):  # `agents.py stop` (flag file, or SIGTERM on POSIX): end the session too
         if child[0] and child[0].poll() is None:
@@ -575,11 +584,19 @@ def cmd_run(a):
             log("nothing ready, waiting for others...")
             idle(30, state="waiting", doing="waiting for dependencies to finish")
             continue
+        now = time.time()
+        for tid in [tid for tid, until in avoid.items() if until <= now]:
+            del avoid[tid]
+        if not mine and avoid and all(t["id"] in avoid for t in tasks.ranked(ts)):
+            log(f"only {', '.join(t['id'] for t in tasks.ranked(ts))} ready, which we gave up over budget: "
+                "leaving it to another agent for now")
+            idle(30, state="waiting", doing="leaving tasks we gave up to other agents: " + ", ".join(sorted(avoid)))
+            continue
         job = JOB_RESUME.format(id=mine[0]["id"]) if mine else JOB_NEW
         if mine and tasks.merge_state():
             job += JOB_CONFLICT.format(op=tasks.merge_state(), files=" ".join(tasks.conflicted()) or "-")
         prompt = PROMPT.format(name=a.name, job=job)
-        review = None  # over budget: this session must decide extend / split / hold instead of coding
+        review = None  # over budget: this session must decide extend / split / release / hold instead of coding
         if mine:
             tid = mine[0]["id"]
             n, secs = spent.get(tid, [0, 0])
@@ -615,7 +632,8 @@ def cmd_run(a):
             publish()
 
         with open(out, "w", encoding="utf-8") as f, open(out, encoding="utf-8", errors="replace") as reader:
-            child[0] = p = subprocess.Popen(agent_argv(a.cmd, prompt), cwd=clone, stdout=f,
+            env = {**os.environ, "TASK_AVOID": ",".join(sorted(avoid))}  # claim without id skips these
+            child[0] = p = subprocess.Popen(agent_argv(a.cmd, prompt), cwd=clone, stdout=f, env=env,
                                             stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, **detached())
             why = None
             while p.poll() is None:
@@ -653,9 +671,15 @@ def cmd_run(a):
                 s[0], s[1] = s[0] + 1, s[1] + time.time() - t0
             if review and review[0] in now_mine:
                 tid, was_extended = review
-                if was_extended or now_mine[tid]["extended"] != a.owner:  # no extend, split or hold chosen
-                    force_hold(tid, f"no decision after {spent[tid][0]} sessions (~{int(spent[tid][1] // 60)} min)"
-                                    " and a review")
+                if was_extended or now_mine[tid]["extended"] != a.owner:  # no extend, split, release or hold chosen
+                    force_release(tid, f"over budget after {spent[tid][0]} sessions (~{int(spent[tid][1] // 60)} "
+                                       f"min) and a review that decided nothing; still resumable: continue "
+                                       f"from wip/{tid} (see git log)")
+                    now_mine.pop(tid)
+            if review and review[0] not in now_mine:  # released (by the review or by us), split or held
+                avoid[review[0]] = time.time() + a.avoid
+                spent.pop(review[0], None)
+                held.discard(review[0])  # else the next heartbeat reports it LOST and kills the next session
         limit = limit_info(out.read_text(encoding="utf-8", errors="replace")) if failed else None
         if limit or fails >= 3:  # out of tokens (or broken for a while): hand the work to other machines
             reason = limit[0] if limit else f"{fails} failed sessions in a row: {one_line(tail, 100)}"
@@ -679,7 +703,9 @@ def main():
     s.add_argument("--limit-wait", type=int, default=900, help="seconds to wait after a usage limit when "
                    "Claude doesn't say when it resets")
     s.add_argument("--task-budget", type=int, default=2, help="sessions per task before the agent must "
-                   "review it: extend (once), split or hold")
+                   "review it: extend (once), split, hand off or hold")
+    s.add_argument("--avoid", type=int, default=300, help="seconds an agent leaves a task it gave up over "
+                   "budget to other agents before it may claim it again")
     s.set_defaults(f=cmd_start)
     sp.add_parser("status").set_defaults(f=cmd_status)
     s = sp.add_parser("stop"); s.set_defaults(f=cmd_stop)
@@ -690,6 +716,7 @@ def main():
     s.add_argument("--owner", required=True); s.add_argument("--lease", type=int, default=1200)
     s.add_argument("--cmd", required=True); s.add_argument("--timeout", type=int, default=1800)
     s.add_argument("--limit-wait", type=int, default=900); s.add_argument("--task-budget", type=int, default=2)
+    s.add_argument("--avoid", type=int, default=300)
     s.set_defaults(f=cmd_run)
     a = p.parse_args(); a.f(a)
 

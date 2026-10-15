@@ -177,6 +177,18 @@ def ranked(ts):
     return sorted(r, key=lambda t: (-t["dependents"], t["prio"], t["id"]))
 
 
+def avoided():
+    """Tasks this agent gave up over budget (TASK_AVOID, set by agents.py): offered last, so another
+    agent continues them first; still offered when nothing else is ready."""
+    return {i.strip() for i in os.environ.get("TASK_AVOID", "").split(",") if i.strip()}
+
+
+def offered(ts):
+    """ranked(), with the tasks this agent should leave to others moved to the end."""
+    skip = avoided()
+    return sorted(ranked(ts), key=lambda t: t["id"] in skip)  # stable: keeps the rank otherwise
+
+
 # ---------- git ----------
 def git(*a, check=True, env=None):
     p = subprocess.run(["git", "-C", str(ROOT), *a], capture_output=True, text=True, env=env)
@@ -414,12 +426,13 @@ def cmd_next(a):
     if frozen():
         return print(f"FROZEN: {frozen()}\nThe board is frozen while humans change the plan: claim nothing new. "
                      "Finish a task you already own; otherwise stop.")
-    r = ranked(analyze(load()))
+    r = offered(analyze(load()))
     if not r:
         print("no ready tasks (all claimed, done, or blocked)")
     for t in r[:a.n]:
         stale = f"  (stale: takeover from {t['owner']})" if t["stale"] else ""
-        print(f"{t['id']:24} unblocks {t['dependents']:<3} prio {t['prio']}  {t['title']}{stale}")
+        gave_up = "  (you gave it up: leave it to another agent if you can)" if t["id"] in avoided() else ""
+        print(f"{t['id']:24} unblocks {t['dependents']:<3} prio {t['prio']}  {t['title']}{stale}{gave_up}")
 
 
 def cmd_claim(a):
@@ -428,7 +441,7 @@ def cmd_claim(a):
         sys.exit(f"FROZEN: {frozen()}\nThe board is frozen while humans change the plan: claim nothing new, "
                  "stop. (Humans: --force claims anyway.)")
     ts = analyze(load())
-    tid = a.id or (ranked(ts)[0]["id"] if ranked(ts) else None)
+    tid = a.id or (offered(ts)[0]["id"] if offered(ts) else None)
     if not tid or tid not in ts:
         sys.exit("no such / no ready task")
     who = a.who or me()

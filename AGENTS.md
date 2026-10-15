@@ -133,10 +133,15 @@ You can also decide this earlier, as soon as you see it:
   Ids: a-z, 0-9, `-`. The optional `deps:` line may name other subtasks or existing tasks. Your
   committed work goes to `wip/<id>` for the subtasks. The original task then waits for them; whoever
   claims it afterwards only integrates and verifies its acceptance criteria. Subtasks can't be split
-  again: put them on hold instead.
-- **Stuck** (unclear requirement, missing dependency, a decision is needed, the check fails for reasons
-  outside your task): `python tasks.py hold <id> "<what a human must decide or do>"`. Agents won't
-  pick it up until a human runs `python tasks.py unhold <id>`.
+  again: hand them off instead.
+- **Hand off** (out of budget, but the task is still valid and resumable, e.g. only final review, the
+  check or `done` is left, and splitting would be artificial): commit, then
+  `python tasks.py release <id> --note "<what is done, exactly what is left>"`. Another agent continues
+  from your commits. A review that decides nothing does this for you.
+- **Stuck**, only when a person is really needed (unclear requirement, missing dependency, a decision is
+  needed, the check fails for reasons outside your task): `python tasks.py hold <id> "<what a human must
+  decide or do>"`. Agents won't pick it up until a human runs `python tasks.py unhold <id>`. Taking
+  longer than planned is not a reason to hold.
 
 ## Several repos
 If `repos.txt` exists, folders such as `backend/` and `frontend/` are other repos imported into this
@@ -149,4 +154,4 @@ claims while they replan). Agents don't use these.
 
 Other commands: `list`, `status`, `check` (validates deps/cycles), `graph` (writes BOARD.md + board.html),
 `heartbeat` (renews your leases; the agent runner does this for you), `redo` (see Merge conflicts),
-`extend` / `split` / `hold` (see Too big or stuck).
+`extend` / `split` / `release` / `hold` (see Too big or stuck).
