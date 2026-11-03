@@ -1,0 +1,7 @@
+{"permissions": {
+  "allow": ["Bash(python tasks.py:*)", "Bash(python3 tasks.py:*)", "Bash(git:*)", "Bash(make:*)",
+            "Bash(npm:*)", "Bash(npx:*)", "Bash(node:*)", "Bash(pytest:*)", "Bash(python:*)",
+            "Bash(docker:*)", "Bash(ls:*)", "Bash(cat:*)", "Bash(mkdir:*)",
+            "WebSearch", "WebFetch", "Agent", "Task", "Skill"],
+  "deny":  ["Bash(git push:*)"]
+}}
