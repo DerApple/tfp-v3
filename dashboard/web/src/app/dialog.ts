@@ -76,6 +76,17 @@ export function outcome(job: Job): { line: string; good: boolean | null } {
             <span>{{ f.label }}@if (f.help) {<small>{{ f.help }}</small>}</span>
           </label>
         }
+        @case ('select') {
+          <label class="fld">
+            <span>{{ f.label }}@if (f.required) {<i> required</i>}</span>
+            <select [name]="f.key" [ngModel]="params()[f.key] ?? ''" (ngModelChange)="set(f.key, $event)">
+              @for (o of optionsFor(f); track o.value) {
+                <option [value]="o.value">{{ o.label }}</option>
+              }
+            </select>
+            @if (f.help) {<small>{{ f.help }}</small>}
+          </label>
+        }
         @case ('textarea') {
           <label class="fld">
             <span>{{ f.label }}@if (f.required) {<i> required</i>}</span>
@@ -131,12 +142,22 @@ export class ActionDialog {
     return outcome(live);
   });
 
+  optionsFor(f: Field): { value: string; label: string }[] {
+    if (f.options === 'accounts') {
+      return (this.store.local()?.accounts ?? []).map((a) => ({
+        value: a.name,
+        label: `${a.name}${a.default ? ' (default)' : ''} · ${a.email || 'unknown e-mail'}${a.tier ? ' · ' + a.tier : ''}`,
+      }));
+    }
+    return [];
+  }
+
   constructor() {
     effect(() => {
       const r = this.ui.dialog();
       const el = this.dlg().nativeElement;
       if (r) {
-        this.params.set({ ...(r.key === 'agents_start' ? { n: 2, host: this.store.local()?.host, first: this.nextAgent() } : {}), ...(r.preset ?? {}) });
+        this.params.set({ ...(r.key === 'agents_start' ? { n: 2, host: this.store.local()?.host, first: this.nextAgent(), account: this.store.local()?.account } : {}), ...(r.preset ?? {}) });
         this.job.set(null);
         this.error.set(null);
         if (!el.open) el.showModal();

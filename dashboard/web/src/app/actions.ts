@@ -5,7 +5,9 @@ import { openCriteria, Task } from './store';
 export interface Field {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'check' | 'number';
+  type: 'text' | 'textarea' | 'check' | 'number' | 'select';
+  /** For type 'select': where the options come from. */
+  options?: 'accounts';
   required?: boolean;
   help?: string;
   placeholder?: string;
@@ -216,6 +218,7 @@ export const ACTIONS: Record<string, ActionDef> = {
       'Starts AI agents on this laptop, in the background, each in its own clone next to this repo. They pick tasks off the board until everything is done, and use your Claude subscription. Closing this page doesn’t stop them; the laptop must stay awake.',
     fields: [
       { key: 'n', label: 'How many', type: 'number', min: 1, max: 32, required: true, help: 'They share your subscription’s usage limit. 2 is a good start.' },
+      { key: 'account', label: 'Claude account', type: 'select', options: 'accounts', help: 'Which Claude login the agents use (its usage limit). Remembered for the next start. More logins: CLAUDE_CONFIG_DIR=~/.claude-<name> claude auth login' },
       { key: 'host', label: 'Your name (tells laptops apart)', type: 'text', placeholder: 'default: this computer’s name' },
       { key: 'first', label: 'Number of the first agent', type: 'number', min: 1, max: 999, help: 'To add agents next to running ones, start after the highest number.', advanced: true },
       { key: 'task_budget', label: 'Sessions per task before a review', type: 'number', min: 1, max: 20, placeholder: '2', advanced: true },
@@ -228,7 +231,8 @@ export const ACTIONS: Record<string, ActionDef> = {
     cli: (p) =>
       `python agents.py start ${p['n'] || 1}${p['first'] && +p['first'] !== 1 ? ' --first ' + p['first'] : ''}${opt(p, 'host', '--host')}` +
       `${opt(p, 'task_budget', '--task-budget')}${opt(p, 'lease', '--lease')}${opt(p, 'timeout', '--timeout')}` +
-      `${opt(p, 'limit_wait', '--limit-wait')}${opt(p, 'cmd', '--cmd')}${sw(p, 'yolo', '--yolo')}`,
+      `${opt(p, 'limit_wait', '--limit-wait')}${opt(p, 'cmd', '--cmd')}${sw(p, 'yolo', '--yolo')}` +
+      `${p['account'] ? ' --account ' + (p['account'] === '.claude' ? '""' : q(p['account'])) : ''}`,
   },
   agents_finish: {
     action: 'agents_stop',

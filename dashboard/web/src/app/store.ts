@@ -104,6 +104,14 @@ export interface LocalAgent {
   stopping: boolean;
   status: LiveAgent | null;
   last_log: string;
+  account?: string;
+}
+
+export interface Account {
+  name: string;
+  email: string;
+  tier: string;
+  default: boolean;
 }
 
 export interface Local {
@@ -124,6 +132,8 @@ export interface Local {
   agents: LocalAgent[];
   host: string;
   repos: boolean;
+  accounts?: Account[];
+  account?: string;
 }
 
 export interface State {

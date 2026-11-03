@@ -141,7 +141,7 @@ def local_state(acting_as):
         agents.append(dict(name=name, pid=s.get("pid"), owner=s.get("owner", name), clone=s.get("clone"), alive=alive,
                            finishing=alive and A.finish_flag(base, name).exists(),
                            stopping=alive and A.stop_flag(base, name).exists(),
-                           status=status, last_log=tail(lf, 1)[0] if lf.exists() else ""))
+                           status=status, last_log=tail(lf, 1)[0] if lf.exists() else "", account=s.get("account", "")))
     branch = git("rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
     up = T.upstream()
     ahead = git("rev-list", "--count", "@{u}..HEAD").stdout.strip() if up else ""
@@ -153,7 +153,9 @@ def local_state(acting_as):
                 git_user=git("config", "user.name").stdout.strip(), acting_as=acting_as,
                 check_cmd=T.check_cmd(), agents_dir=str(base), agents=agents,
                 host=os.environ.get("AGENT_HOST") or __import__("socket").gethostname().split(".")[0],
-                repos=(ROOT / "repos.txt").exists())
+                repos=(ROOT / "repos.txt").exists(),
+                accounts=[dict(name=x["name"], email=x["email"], tier=x["tier"], default=x["default"]) for x in A.accounts()],
+                account=A.saved_account(ROOT) or ".claude")
 
 
 def tail(path, n):
@@ -387,6 +389,12 @@ def build(action, p, jobs):
                 args += [f"--{k.replace('_', '-')}", str(num(p, k, lo, hi))]
         if opt(p, "cmd"):
             args += ["--cmd", opt(p, "cmd")]
+        account = opt(p, "account")
+        if account:  # only a login listed by agents.py accounts, never an arbitrary path
+            known = {x["name"]: x for x in A.accounts()}
+            if account not in known:
+                raise Bad(f"unknown Claude account {account!r}")
+            args += ["--account", "" if known[account]["default"] else account]
         args += flag("yolo", "--yolo")
         return job(f"Start {n} agent{'s' * (n > 1)}", agents_(*args))
     if action == "agents_stop":

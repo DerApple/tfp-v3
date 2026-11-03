@@ -6,6 +6,7 @@
   python agents.py logs 2             # tail agent-2's log
   python agents.py stop              # now: ends the sessions (their tasks stay claimed)
   python agents.py stop --finish     # gently: no new tasks, finish the current ones, then exit
+  python agents.py accounts          # Claude logins on this machine; start --account <name> picks one
 
 Each agent loops: pull -> (resume own in_progress task | claim best ready task) -> work -> done,
 one fresh agent session per task, until every task is done. Needs an 'origin' remote.
@@ -206,6 +207,58 @@ def host(a=None):
     return getattr(a, "host", None) or os.environ.get("AGENT_HOST") or socket.gethostname().split(".")[0]
 
 
+# ---------- Claude accounts (several logins on one machine via CLAUDE_CONFIG_DIR) ----------
+def accounts():
+    """Claude Code logins on this machine: ~/.claude (the default) and every ~/.claude-<name> that holds a login.
+    Each is a CLAUDE_CONFIG_DIR; agents started with --account use that login instead of the default one."""
+    home = Path.home()
+    out = []
+    for d in [home / ".claude", *sorted(p for p in home.glob(".claude-*") if p.is_dir())]:
+        meta = home / ".claude.json" if d == home / ".claude" else d / ".claude.json"
+        try:
+            acc = json.loads(meta.read_text(encoding="utf-8")).get("oauthAccount") or {}
+        except (OSError, ValueError):
+            acc = {}
+        logged_in = (d / ".credentials.json").exists() or bool(acc)
+        if not logged_in:
+            continue
+        out.append(dict(name=d.name, path=str(d), default=d == home / ".claude", email=acc.get("emailAddress") or "",
+                        org=acc.get("organizationName") or "",
+                        tier=acc.get("userRateLimitTier") or acc.get("organizationRateLimitTier") or acc.get("seatTier") or ""))
+    return out
+
+
+def config_file(root):
+    return base_dir(root) / "config.json"
+
+
+def saved_account(root):
+    try:
+        return json.loads(config_file(root).read_text()).get("account") or ""
+    except (OSError, ValueError):
+        return ""
+
+
+def resolve_account(name):
+    """'' -> default login; else an account name (.claude-privat) or path from accounts()."""
+    if not name:
+        return None
+    for acc in accounts():
+        if name in (acc["name"], acc["path"]) or Path(name).expanduser() == Path(acc["path"]):
+            return acc
+    sys.exit(f"unknown Claude account {name!r}; known: {', '.join(x['name'] for x in accounts()) or 'none'} "
+             "(log in with: CLAUDE_CONFIG_DIR=~/.claude-<name> claude auth login)")
+
+
+def cmd_accounts(a):
+    root = repo_root()
+    cur = saved_account(root)
+    for acc in accounts():
+        mark = "*" if (acc["name"] == cur or (not cur and acc["default"])) else " "
+        print(f"{mark} {acc['name']:20} {acc['email']:35} {acc['tier']:30} {acc['path']}")
+    print("\n* = used by `agents.py start` unless --account is given (the last choice is remembered)")
+
+
 # ---------- processes (POSIX: sessions + signals; Windows: process groups + taskkill) ----------
 def alive(pid):
     if WINDOWS:  # os.kill(pid, 0) would *terminate* the process on Windows
@@ -280,6 +333,14 @@ def cmd_start(a):
     cmd = a.cmd or os.environ.get("AGENT_CMD") or (YOLO_CMD if a.yolo else DEFAULT_CMD)
     base = base_dir(root)
     (base / "logs").mkdir(parents=True, exist_ok=True)
+    # Which Claude login the agents use: --account (remembered for next time), else the remembered one.
+    if a.account is not None:
+        acc = resolve_account(a.account)
+        config_file(root).write_text(json.dumps({"account": acc["name"] if acc and not acc["default"] else ""}))
+    else:
+        acc = resolve_account(saved_account(root))
+    account_args = ["--account", acc["path"]] if acc and not acc["default"] else []
+    print(f"Claude account: {acc['name'] if acc else '.claude'} ({acc['email'] if acc else 'default login'})")
     st = json.loads(state_file(root).read_text()) if state_file(root).exists() else {}
     for i in range(a.first, a.first + a.n):
         name = f"agent-{i}"
@@ -299,13 +360,13 @@ def cmd_start(a):
         log = open(base / "logs" / f"{name}.log", "a", encoding="utf-8")
         argv = [sys.executable, str(Path(__file__).resolve()), "run", name, str(clone), "--owner", owner,
                 "--cmd", cmd, "--timeout", str(a.timeout), "--lease", str(a.lease), "--limit-wait", str(a.limit_wait),
-                "--task-budget", str(a.task_budget), "--avoid", str(a.avoid)]
+                "--task-budget", str(a.task_budget), "--avoid", str(a.avoid), *account_args]
         io = dict(stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
         try:  # Windows: leave the terminal's job object too, if allowed, so closing the terminal is safe
             proc = subprocess.Popen(argv, **io, **detached(breakaway=True))
         except OSError:
             proc = subprocess.Popen(argv, **io, **detached())
-        st[name] = {"pid": proc.pid, "clone": str(clone), "owner": owner}
+        st[name] = {"pid": proc.pid, "clone": str(clone), "owner": owner, "account": acc["name"] if acc else ".claude"}
         print(f"started {name} pid {proc.pid} in {clone}")
         time.sleep(a.stagger)  # de-synchronise first claims
     state_file(root).write_text(json.dumps(st, indent=2))
@@ -411,6 +472,10 @@ def cmd_run(a):
     clone = Path(a.clone)
     hb = clone.parent / f"{a.name}.hb"  # heartbeats commit here, never in the agent's working tree
     os.environ.update(TASKS_ROOT=str(clone), TASK_OWNER=a.owner, TASK_LEASE=str(a.lease))
+    if a.account:  # this agent's Claude login (see accounts())
+        os.environ["CLAUDE_CONFIG_DIR"] = a.account
+    else:
+        os.environ.pop("CLAUDE_CONFIG_DIR", None)
     # git has no network timeout: a stalled HTTPS fetch would block heartbeats and sessions forever
     os.environ.setdefault("GIT_HTTP_LOW_SPEED_LIMIT", "1000")
     os.environ.setdefault("GIT_HTTP_LOW_SPEED_TIME", "60")
@@ -708,7 +773,10 @@ def main():
                    "review it: extend (once), split, hand off or hold")
     s.add_argument("--avoid", type=int, default=300, help="seconds an agent leaves a task it gave up over "
                    "budget to other agents before it may claim it again")
+    s.add_argument("--account", help="Claude login to use: a name from `agents.py accounts` (e.g. .claude-privat); "
+                   "'' for the default login. Remembered for later starts")
     s.set_defaults(f=cmd_start)
+    sp.add_parser("accounts", help="list the Claude logins on this machine").set_defaults(f=cmd_accounts)
     sp.add_parser("status").set_defaults(f=cmd_status)
     s = sp.add_parser("stop"); s.set_defaults(f=cmd_stop)
     s.add_argument("--finish", action="store_true", help="claim no new tasks; each agent finishes its current "
@@ -718,7 +786,7 @@ def main():
     s.add_argument("--owner", required=True); s.add_argument("--lease", type=int, default=1200)
     s.add_argument("--cmd", required=True); s.add_argument("--timeout", type=int, default=1800)
     s.add_argument("--limit-wait", type=int, default=900); s.add_argument("--task-budget", type=int, default=2)
-    s.add_argument("--avoid", type=int, default=300)
+    s.add_argument("--avoid", type=int, default=300); s.add_argument("--account", default="")
     s.set_defaults(f=cmd_run)
     a = p.parse_args(); a.f(a)
 

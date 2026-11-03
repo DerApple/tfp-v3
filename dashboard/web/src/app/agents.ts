@@ -49,7 +49,7 @@ interface Card { owner: string; host: string; name: string; state: string; task:
             <article class="lagent panel" [class.dead]="!a.alive">
               <div class="row-between">
                 <div>
-                  <b class="name">{{ a.name }}</b>&nbsp;<span class="muted">&#64; {{ host(a.owner) }}</span>
+                  <b class="name">{{ a.name }}</b>&nbsp;<span class="muted">&#64; {{ host(a.owner) }}</span>@if (a.account) {&nbsp;<span class="muted" title="Claude account">· {{ a.account }}</span>}
                 </div>
                 <span class="pill" [attr.data-s]="lstate(a)">{{ lstateLabel(a) }}</span>
               </div>
