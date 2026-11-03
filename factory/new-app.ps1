@@ -41,13 +41,21 @@ Push-Location $Dest
 git init -b main | Out-Null
 git add -A
 git commit -m "Init aus TFP-Fabrik: $Name" | Out-Null
-if (-not $NoGitHub) {
-  if (Get-Command gh -ErrorAction SilentlyContinue) {
-    gh repo create "$GitHubOwner/$Name" --private --source . --push
-  } else {
-    Write-Warning "gh (GitHub CLI) nicht gefunden. Repo manuell anlegen: github.com/new -> $GitHubOwner/$Name (privat, leer), dann:"
-    Write-Host  "  git remote add origin https://github.com/$GitHubOwner/$Name.git; git push -u origin main"
-  }
+$remoteOk = $false
+if (-not $NoGitHub -and (Get-Command gh -ErrorAction SilentlyContinue)) {
+  gh repo create "$GitHubOwner/$Name" --private --source . --push
+  if ($LASTEXITCODE -eq 0) { $remoteOk = $true }
+}
+if (-not $remoteOk) {
+  # Ersatz: lokales Bare-Repo als origin (Agenten brauchen ein origin). Spaeter auf GitHub umstellen.
+  $Bare = Join-Path $Root "_remotes\$Name.git"
+  New-Item -ItemType Directory -Force -Path (Split-Path $Bare) | Out-Null
+  git init --bare -b main $Bare | Out-Null
+  git remote add origin $Bare
+  git push -u origin main | Out-Null
+  Write-Warning "Kein GitHub-Repo angelegt (gh fehlt oder -NoGitHub). origin = $Bare"
+  Write-Host  "Spaeter, wenn das Board fertig ist: gh repo create $GitHubOwner/$Name --private, dann im App-Ordner:"
+  Write-Host  "  git remote set-url origin https://github.com/$GitHubOwner/$Name.git; git push -u origin main"
 }
 Pop-Location
 Write-Host "Fertig: $Dest" -ForegroundColor Green

@@ -13,7 +13,10 @@ Kurzbeschreibung: {{APP_IDEA}}
 <!-- in Phase 3 ausfüllen: install, dev-server, test, lint, build -->
 
 ## Regeln
-- Nichts bauen, was nicht in SPEC.md steht. Fehlt etwas: `python tasks.py assume` bzw. neuer Task.
+- Nichts bauen, was nicht in SPEC.md steht.
+- **Autonom entscheiden, nie auf Menschen warten.** Fachliche Unklarheit: vernünftigste Option wählen, die zu SPEC.md passt, und sofort `python tasks.py assume <id> "<Annahme + Grund>"`. `hold` NUR bei technischen Blockern (externer Zugang fehlt), nie für fachliche Fragen.
+- **Recherche-Lücke:** Steht die Antwort nicht in `docs/research/` und ist sie für den Task entscheidend, lege `python tasks.py new research-<thema> "<Frage>" --touches docs/research/<thema>.md` an (Ergebnis: eine Datei mit Quellen, Websuche erlaubt) und mache den abhängigen Task davon abhängig oder entscheide per `assume` weiter. Max. 1 Recherche-Task pro Auslöser, keine Recherche-Ketten.
+- Dateien immer mit dem Write/Edit-Werkzeug schreiben, nie per Shell-Heredoc (scheitert unter Windows).
 - Externe Systeme (Portale, Mail, Kalender, KI) nur über Adapter-Interfaces aus ARCHITECTURE.md. Mock-Adapter für Tests/Demo.
 - Testdaten nur synthetisch.
 - Doku ist Teil von Done: ändert sich Verhalten, Befehl oder Architektur, im selben Task SPEC/ARCHITECTURE/README nachziehen.
