@@ -1,6 +1,6 @@
-# App-Pipeline (App-Fabrik) – v3
+# App-Factory – v3
 
-Diese Datei ist die einzige maßgebliche Anleitung. Der Claude-Skill `app-pipeline` und der Einstieg über GitHub (README) führen beide hierher.
+Diese Datei ist die einzige maßgebliche Anleitung. Der Claude-Skill `app-factory` und der Einstieg über GitHub (README) führen beide hierher.
 
 Ziel: Aus einer kurzen Idee entsteht autonom ein lauffähiges MVP. Raphael wird **nur zu Beginn** gefragt (Spec-Fragen in dieser Session). Ab dem Start des Baus gibt es **keine Stopps** mehr: Agenten entscheiden selbst und protokollieren Annahmen. Raphael prüft am Ende im Review.
 

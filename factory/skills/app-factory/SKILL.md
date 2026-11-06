@@ -1,9 +1,9 @@
 ---
-name: "app-pipeline"
-description: "Neue App aus einer Ein-Satz-Idee möglichst autonom bauen: Recherche, Spec, Grundgerüst, autonomer Bau mit TFP, Review. Nutzen bei 'baue mir eine App/ein Tool für…', '/app-pipeline', 'neues App-Projekt starten'."
+name: "app-factory"
+description: "Neue App aus einer Ein-Satz-Idee möglichst autonom bauen: Recherche, Spec, Grundgerüst, autonomer Bau mit TFP, Review. Nutzen bei 'baue mir eine App/ein Tool für…', '/app-factory', 'App-Factory', 'neues App-Projekt starten'."
 ---
 
-# App-Pipeline (Einstieg)
+# App-Factory (Einstieg)
 
 Die eigentliche Anleitung liegt versioniert im GitHub-Repo **`DerApple/tfp-v3`**, Datei `factory/PIPELINE.md`. Dieser Skill sorgt nur dafür, dass sie auf dem Rechner da und aktuell ist, und folgt ihr dann. So ist es egal, ob jemand mit dem Skill oder direkt im Repo beginnt.
 
