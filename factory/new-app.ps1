@@ -20,11 +20,16 @@ $ErrorActionPreference = "Stop"
 $Tfp  = Split-Path $PSScriptRoot -Parent
 $Dest = Join-Path $Root $Name
 if (Test-Path $Dest) { throw "Ordner existiert bereits: $Dest" }
-$HasGh = [bool](Get-Command gh -ErrorAction SilentlyContinue)
+$Setup = & (Join-Path $PSScriptRoot "check-setup.ps1") -Quiet
+if (-not $Setup.Ok) {
+  & (Join-Path $PSScriptRoot "check-setup.ps1") | Out-Null
+  throw "Rechner noch nicht bereit (fehlt: $($Setup.Missing -join ', ')). Anleitung steht oben; danach erneut starten."
+}
+$HasGh = $Setup.Gh
 if (-not $NoGitHub -and -not $RepoUrl -and -not $HasGh) {
-  throw ("Kein GitHub-Ziel: gh ist nicht installiert und -RepoUrl fehlt. Lege auf github.com ein leeres privates " +
-         "Repo '$Name' an (ohne README) und starte erneut mit -RepoUrl https://github.com/$GitHubOwner/$Name.git " +
-         "(oder installiere gh: winget install GitHub.cli, dann gh auth login).")
+  throw ("Kein GitHub-Ziel: GitHub CLI (gh) ist nicht installiert/angemeldet und -RepoUrl fehlt. Entweder einmalig " +
+         "'winget install GitHub.cli' und 'gh auth login', oder auf github.com ein leeres privates Repo '$Name' " +
+         "anlegen (ohne README) und erneut starten mit -RepoUrl https://github.com/$GitHubOwner/$Name.git")
 }
 New-Item -ItemType Directory -Force -Path $Dest | Out-Null
 
@@ -50,6 +55,7 @@ Get-ChildItem $Dest -Recurse -File -Include *.md | ForEach-Object {
 
 # 4. Git
 Push-Location $Dest
+$ErrorActionPreference = "Continue"   # Git schreibt harmlose Warnungen (LF/CRLF) nach stderr; Fehler pruefen wir per $LASTEXITCODE
 git init -b main | Out-Null
 git add -A
 git commit -m "Init aus TFP-Fabrik: $Name" | Out-Null
